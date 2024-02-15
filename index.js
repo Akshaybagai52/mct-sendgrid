@@ -46,34 +46,37 @@ app.post("/api/generate-certificate", async (req, res) => {
   
   let email = userReport.EmailOfUser;
 
-  userReport.ModuleDetails.forEach(async (module) => {
+  for (const module of userReport.ModuleDetails) {
     if (module.CompletedOn !== 'NOT APPLICABLE' && !completedCourses.includes(module.ModuleId)) {
-      // Send email for the new completion
-      console.log("Sending gridmail...");
-      try {
-        // Send grid mail
-        let mailer = await grid_mailer
+       completedCourses.push(module.ModuleId);
+    }
+ }
+ 
+ // Send email after processing all completed courses
+ if (completedCourses.length > 0) {
+    console.log("Sending gridmail...");
+    try {
+       // Send grid mail
+       let mailer = await grid_mailer
           .setTemplateData({
-            username: "amishsingh8561@gmail.com",
-            password: "default_password",
-            nickname: "nickname",
+             username: "amishsingh8561@gmail.com",
+             password: "default_password",
+             nickname: "nickname",
           })
           .setTo(email)
           .send();
-        console.log(JSON.parse(JSON.stringify(mailer)));
-      } catch (e) {
-        console.log("WARNING: Failed to send email. Error details:", e);
-
-        // Log the specific error details if available
-        if (e.response && e.response.body && e.response.body.errors) {
+       console.log(JSON.parse(JSON.stringify(mailer)));
+    } catch (e) {
+       console.log("WARNING: Failed to send email. Error details:", e);
+ 
+       // Log the specific error details if available
+       if (e.response && e.response.body && e.response.body.errors) {
           console.log("Error details:", e.response.body.errors);
-        }
-
-        return res.status(500).json({ message: "Failed to send email" });
-      }
-      completedCourses.push(module.ModuleId);
+       }
+ 
+       return res.status(500).json({ message: "Failed to send email" });
     }
-  });
+ }
 
 
 
